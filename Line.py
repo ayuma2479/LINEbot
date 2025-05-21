@@ -6,16 +6,20 @@ from linebot.models import TextSendMessage
 import re
 bill_state: dict[str, dict] = {}
 
-OPENAI_API_KEY = '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'
-LINE_CHANNEL_ACCESS_TOKEN = 'yng+KloR1cM62kxPKfv/piOCnERzkYRJER9ZRQCguINDgVysnoIgZjrPszoJ6kR1DS4ZXDUIotp3xJCNdAjZoST+o5Me6e6cUD59cac7C/snv8MiSW7w/gLqVxSWshPW83EJ7TjCyrFr5j3iKEtNwuwdB04t89/1O/w1cDnyilFU='
-LINE_CHANNEL_SECRET = '4fd85508696b00e2c51b4c7aa7228554'
+from dotenv import load_dotenv  # python-dotenv をインストールしておく
+import os
+
+load_dotenv()  # .env を読み込んで環境変数に設定  [oai_citation:8‡PyPI](https://pypi.org/project/python-dotenv/?utm_source=chatgpt.com)
+OPENAI_API_KEY = os.getenv("OPENAI_API_KEY")  # 環境変数から取得  [oai_citation:9‡GeeksforGeeks](https://www.geeksforgeeks.org/read-environment-variables-with-python-dotenv/?utm_source=chatgpt.com)
+LINE_CHANNEL_ACCESS_TOKEN = os.getenv("LINE_CHANNEL_ACCESS_TOKEN")
+LINE_CHANNEL_SECRET = os.getenv("LINE_CHANNEL_SECRET")
 OPENAI_CHARACTER_PROFILE = '''
 これから会話を行います。以下の条件を絶対に守って回答してください。
 あなたは週末の自炊のアシスタントです。僕たちの週末の料理をサポートしてください。
 あなたは料理名から、人数に対するメニューを言われます。その時に
 レシピと、人数分の材料を答えること。
 '''
-
+print("KEY:", os.getenv("OPENAI_API_KEY"))
 
 openai.api_key = OPENAI_API_KEY
 line_bot_api = LineBotApi(LINE_CHANNEL_ACCESS_TOKEN)
