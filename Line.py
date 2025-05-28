@@ -58,6 +58,29 @@ def handle_other_tasks(user_id: str, message: str) -> str:
                 "例:合計の料金は3000円で、石原さんが払いました。"
             )
 
+    # 自然文から人数と料理名を抽出し、レシピを生成
+    if 'レシピ' in message and re.search(r'(\d+)人.*?(?:で|が).*?(.+?)を作りたい', message):
+        match = re.search(r'(\d+)人.*?(?:で|が).*?(.+?)を作りたい', message)
+        if match:
+            people = int(match.group(1))
+            dish = match.group(2).strip()
+
+            prompt = (
+                f"{people}人分の{dish}を作るためのレシピを教えてください。\n"
+                f"材料の分量も具体的に教えてください。\n"
+                f"出力形式は「材料」と「作り方」の2つのセクションに分けてください。"
+            )
+
+            response = openai.ChatCompletion.create(
+                model='gpt-3.5-turbo',
+                temperature=0.7,
+                messages=[
+                    {'role': 'system', 'content': OPENAI_CHARACTER_PROFILE.strip()},
+                    {'role': 'user', 'content': prompt}
+                ]
+            )
+            return response['choices'][0]['message']['content']
+
     return "申し訳ありません、そのご要望には対応していません。"
 
 
