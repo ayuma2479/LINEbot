@@ -1,5 +1,6 @@
 from fastapi import FastAPI, Request
 import openai
+import cohere
 from linebot import WebhookParser, LineBotApi
 from linebot.models import TextSendMessage
 
@@ -13,6 +14,8 @@ load_dotenv()  # .env を読み込んで環境変数に設定  [oai_citation:8�
 OPENAI_API_KEY = os.getenv("OPENAI_API_KEY")  # 環境変数から取得  [oai_citation:9‡GeeksforGeeks](https://www.geeksforgeeks.org/read-environment-variables-with-python-dotenv/?utm_source=chatgpt.com)
 LINE_CHANNEL_ACCESS_TOKEN = os.getenv("LINE_CHANNEL_ACCESS_TOKEN")
 LINE_CHANNEL_SECRET = os.getenv("LINE_CHANNEL_SECRET")
+COHERE_API_KEY = os.getenv("COHERE_API_KEY")
+co = cohere.Client(COHERE_API_KEY)
 OPENAI_CHARACTER_PROFILE = '''
 これから会話を行います。以下の条件を絶対に守って回答してください。
 あなたは週末の自炊のアシスタントです。僕たちの週末の料理をサポートしてください。
@@ -58,28 +61,33 @@ def handle_other_tasks(user_id: str, message: str) -> str:
                 "例:合計の料金は3000円で、石原さんが払いました。"
             )
 
-    # 自然文から人数と料理名を抽出し、レシピを生成
+    # 自然文から人数と料理名を抽出し、Cohereでレシピを生成
     if 'レシピ' in message and re.search(r'(\d+)人.*?(?:で|が).*?(.+?)を作りたい', message):
         match = re.search(r'(\d+)人.*?(?:で|が).*?(.+?)を作りたい', message)
         if match:
             people = int(match.group(1))
             dish = match.group(2).strip()
 
-            prompt = (
-                f"{people}人分の{dish}を作るためのレシピを教えてください。\n"
-                f"材料の分量も具体的に教えてください。\n"
-                f"出力形式は「材料」と「作り方」の2つのセクションに分けてください。"
-            )
+            prompt = f"""
+{people}人分の{dish}を作りたいです。
+レシピと材料の分量を教えてください。
+出力形式は以下の通りにしてください：
 
-            response = openai.ChatCompletion.create(
-                model='gpt-3.5-turbo',
+【材料】
+- 食材名: 数量（単位）
+
+【作り方】
+- 手順1
+- 手順2
+"""
+
+            response = co.generate(
+                model='command-r-plus',
+                prompt=prompt,
+                max_tokens=500,
                 temperature=0.7,
-                messages=[
-                    {'role': 'system', 'content': OPENAI_CHARACTER_PROFILE.strip()},
-                    {'role': 'user', 'content': prompt}
-                ]
             )
-            return response['choices'][0]['message']['content']
+            return response.generations[0].text.strip()
 
     return "申し訳ありません、そのご要望には対応していません。"
 
