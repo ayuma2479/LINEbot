@@ -38,14 +38,12 @@ def handle_other_tasks(user_id: str, message: str) -> str:
             return "参加人数が認識できませんでした。数字で教えてください。"
 
     # 支払い情報の処理
-    if '合計' in message and '円' in message and '払いました' in message:
-        m = re.search(r'合計の料金は(\d+)円.*?、(.+?)が払いました', message)
+    if re.search(r'(\d+)人.*?(\d+)円.*?払いました', message):
+        m = re.search(r'(\d+)人.*?(\d+)円.*?払いました', message)
         if m:
-            total = int(m.group(1))
-            purchaser = m.group(2).strip()
-            if 'count' not in state:
-                return "参加人数がまだ設定されていません。先に参加人数を教えてください。"
-            count = state['count']
+            count = int(m.group(1))
+            total = int(m.group(2))
+            purchaser = "誰か"  # 購入者不明として仮定（オプションで追加可能）
             share = total // count
             # 状態をクリア
             del bill_state[user_id]
