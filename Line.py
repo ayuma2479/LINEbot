@@ -43,7 +43,8 @@ def handle_other_tasks(user_id: str, message: str) -> str:
         if m:
             count = int(m.group(1))
             total = int(m.group(2))
-            purchaser = "誰か"  # 購入者不明として仮定（オプションで追加可能）
+            name_match = re.search(r'購入者は(.*?)です', message)
+            purchaser = name_match.group(1).strip() if name_match else "誰か"
             share = total // count
             # 状態をクリア
             del bill_state[user_id]
