@@ -1,5 +1,4 @@
 from fastapi import FastAPI, Request
-import openai
 import cohere
 from linebot import WebhookParser, LineBotApi
 from linebot.models import TextSendMessage
@@ -11,7 +10,6 @@ from dotenv import load_dotenv  # python-dotenv をインストールしてお�
 import os
 
 load_dotenv()  # .env を読み込んで環境変数に設定  [oai_citation:8‡PyPI](https://pypi.org/project/python-dotenv/?utm_source=chatgpt.com)
-OPENAI_API_KEY = os.getenv("OPENAI_API_KEY")  # 環境変数から取得  [oai_citation:9‡GeeksforGeeks](https://www.geeksforgeeks.org/read-environment-variables-with-python-dotenv/?utm_source=chatgpt.com)
 LINE_CHANNEL_ACCESS_TOKEN = os.getenv("LINE_CHANNEL_ACCESS_TOKEN")
 LINE_CHANNEL_SECRET = os.getenv("LINE_CHANNEL_SECRET")
 COHERE_API_KEY = os.getenv("COHERE_API_KEY")
@@ -22,9 +20,7 @@ OPENAI_CHARACTER_PROFILE = '''
 あなたは料理名から、人数に対するメニューを言われます。その時に
 レシピと、人数分の材料を答えること。
 '''
-print("KEY:", os.getenv("OPENAI_API_KEY"))
 
-openai.api_key = OPENAI_API_KEY
 line_bot_api = LineBotApi(LINE_CHANNEL_ACCESS_TOKEN)
 line_parser = WebhookParser(LINE_CHANNEL_SECRET)
 
@@ -106,20 +102,8 @@ async def ai_talk(request: Request):
         line_user_id = event.source.user_id
         line_message = event.message.text
 
-        # 条件分岐: メッセージに「レシピ」が含まれる場合のみ生成AIを使用
-        if 'レシピ' in line_message:
-            response = openai.ChatCompletion.create(
-                model='gpt-3.5-turbo',
-                temperature=0.5,
-                messages=[
-                    {'role': 'system', 'content': OPENAI_CHARACTER_PROFILE.strip()},
-                    {'role': 'user', 'content': line_message}
-                ]
-            )
-            ai_message = response['choices'][0]['message']['content']
-        else:
-            # それ以外のタスクは handle_other_tasks で処理
-            ai_message = handle_other_tasks(line_user_id, line_message)
+        ai_message = handle_other_tasks(line_user_id, line_message)
+
         line_bot_api.push_message(line_user_id, TextSendMessage(ai_message))
     
     return 'ok'
